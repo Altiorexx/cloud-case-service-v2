@@ -1,0 +1,20 @@
+
+
+    rust might be a solution for developing a more reliable and robust collaboration service, 
+    as the 'case service' should maybe not exist, as it has been discussed to split each solution
+    into their own service, rather than have a unified service for all solutions.
+
+    Here Rust + Rocket can be the tool of choice when building the realtime collaboration service, 
+    which should be reusable for all future products. (glhf lol?)
+
+    Rust seems to be awfully helpful when developing less runtime error prone services, which is 
+    nice. Also lower memory footprint.
+    The developer experience beats go abit is to be believed.
+
+
+    ALL THINGS CONSIDERED, leave rust for now and stick to using known tools (Go) to finish up the
+    Altiore Portal.
+    
+    --> When the CIS18 requirement specification is outlined, Rust may be a new tool to introduce. 
+
+
