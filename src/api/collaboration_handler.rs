@@ -2,6 +2,7 @@ use rocket_ws as ws;
 use rocket::State;
 use rocket::futures::StreamExt;
 
+use super::middleware_handler::AuthorizeClientGuard;
 use crate::database::case::{new_case_database, CaseDatabase};
 use crate::service::socket::{SocketService, new_socket_service};
 use crate::types::collaboration_handler::Message;
@@ -21,7 +22,7 @@ pub async fn new_collaboration_handler() -> CollaborationHandler {
 }
 
 #[get("/api/collaboration/<case_id>/connect/<user_id>")]
-pub async fn connect(handler: &State<CollaborationHandler>, ws: ws::WebSocket, case_id: String, user_id: String) -> ws::Channel<'_> {
+pub async fn connect(_guard: AuthorizeClientGuard, handler: &State<CollaborationHandler>, ws: ws::WebSocket, case_id: String, user_id: String) -> ws::Channel<'_> {
     println!("client connected to case {}", case_id);
     
     // check if there is already a user connected to the case

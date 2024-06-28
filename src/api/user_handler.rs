@@ -14,9 +14,11 @@ pub struct UserHandler {
     core: CoreDatabase
 }
 
-pub async fn new_user_handler() -> UserHandler {
-    UserHandler {
-        core: new_core_database().await
+impl UserHandler {
+    pub async fn new() -> UserHandler {
+        UserHandler {
+            core: new_core_database().await
+        }
     }
 }
 
@@ -31,7 +33,7 @@ pub struct CreateUserBody {
 }
 
 #[post("/api/user/create", data = "<data>")]
-pub async fn create_user(_guard: middleware_handler::ApiKeyGuard, handler: &State<UserHandler>, data: Json<CreateUserBody>) -> String {
+pub async fn create_user(_guard: middleware_handler::AuthorizeClientGuard, handler: &State<UserHandler>, data: Json<CreateUserBody>) -> String {
     match handler.core.create_user(&data.name, &data.email, &data.password, &data.last_login, false).await {
         Ok(_) => format!("successfully created user").to_string(),
         Err(e) => format!("error creating user: {}", e).to_string()
@@ -39,7 +41,7 @@ pub async fn create_user(_guard: middleware_handler::ApiKeyGuard, handler: &Stat
 }
 
 #[get("/<user_id>")]
-pub async fn get_user_by_id(_guard: middleware_handler::ApiKeyGuard, handler: &State<UserHandler>, user_id: &str) -> Result<Json<User>, String> {
+pub async fn get_user_by_id(_guard: middleware_handler::AuthorizeClientGuard, handler: &State<UserHandler>, user_id: &str) -> Result<Json<User>, String> {
     match handler.core.read_user_by_id(user_id).await {
         Ok(user) => Ok(Json(user)),
         Err(e) => Err(e.to_string())

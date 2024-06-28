@@ -9,12 +9,13 @@ use std::env;
 use rocket::Config;
 
 
-use api::user_handler::{self, new_user_handler};
-use api::case_handler::{self, new_case_handler};
+
+use api::case_handler;
+use api::user_handler;
 use api::collaboration_handler::{self, new_collaboration_handler};
 use api::middleware_handler::Logger;
 use api::cors::{CORS, all_options};
-
+use service::user::UserService;
 
 #[rocket::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -31,9 +32,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     rocket::build()
     .configure(figment)
-    .manage(new_user_handler().await)
-    .manage(new_case_handler().await)
+    .manage(case_handler::CaseHandler::new().await)
+    .manage(user_handler::UserHandler::new().await)
     .manage(new_collaboration_handler().await)
+    .manage(UserService::new())
     .attach(CORS)
     .attach(Logger)
     .mount("/", routes![
@@ -43,7 +45,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         case_handler::create_cis18_case,
         case_handler::rename_case,
         case_handler::delete_case,
-
 
         case_handler::get_case,
         case_handler::get_cases,
