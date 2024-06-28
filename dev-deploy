@@ -15,7 +15,6 @@ RUN cargo build
 # Expose the port your application listens on (if applicable)
 EXPOSE $PORT
 
-
 # Define the command to run your application
 CMD ./target/debug/case-service
 
