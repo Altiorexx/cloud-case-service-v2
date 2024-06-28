@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use rocket::{fairing::{Fairing, Info, Kind}, Data, Request, State};
 use rocket::http::Status;
 use rocket::request::FromRequest;
@@ -16,7 +18,7 @@ impl<'r> FromRequest<'r> for AuthorizeClientGuard {
     type Error = ErrorResponse;
     async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
        
-        let user_service = match request.guard::<&State<UserService>>().await {
+        let user_service = match request.guard::<&State<Arc<UserService>>>().await {
             Outcome::Success(user_service) => user_service,
             Outcome::Error(_) | Outcome::Forward(_) => {
                 return Outcome::Error((Status::InternalServerError, ErrorResponse{error: "internal_server_error".into()}));

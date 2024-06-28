@@ -8,8 +8,6 @@ pub mod service;
 use std::env;
 use rocket::Config;
 
-
-
 use api::case_handler;
 use api::user_handler;
 use api::collaboration_handler::{self, new_collaboration_handler};
@@ -17,19 +15,22 @@ use api::middleware_handler::Logger;
 use api::cors::{CORS, all_options};
 use service::user::UserService;
 
+
 #[rocket::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     config::load_environment_var_file();
     
-     // Get the port from the environment variable, panicking if not set or invalid
+     // get the port from the environment variable, panicking if not set or invalid
     let port: u16 = env::var("PORT")
         .expect("PORT environment variable must be set")
         .parse()
         .expect("PORT must be a valid number");
 
-    // Create a custom configuration
-    let figment = Config::figment().merge(("port", port));
-    
+    // create a custom configuration
+    let figment = Config::figment()
+        .merge(("port", port))
+        .merge(("address", "0.0.0.0"));
+
     rocket::build()
     .configure(figment)
     .manage(case_handler::CaseHandler::new().await)
