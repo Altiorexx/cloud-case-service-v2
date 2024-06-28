@@ -10,17 +10,19 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies and build the application
-RUN cargo build --release
+RUN cargo build
 
 # Expose the port your application listens on (if applicable)
-EXPOSE 8000
+EXPOSE $PORT
 
-ENV PORT=8000
 
 # Define the command to run your application
-CMD ./target/release/rust-api
+CMD ./target/debug/rust-api
 
 
+
+# This script should have release and /release/<exe>..
+# whereas the dev has debug build and /debug/<exe>..
 
 
 
