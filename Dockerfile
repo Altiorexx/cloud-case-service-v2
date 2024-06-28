@@ -10,7 +10,6 @@ WORKDIR /app
 COPY . .
 
 #
-ENV PORT="4000"
 ENV MONGODB_CONNECTION_STRING="mongodb+srv://ka:admin@cloud-case-db.afemiys.mongodb.net/?retryWrites=true&w=majority&appName=cloud-case-db"
 ENV ISSUER="https://case.service.altiore.io"
 ENV SECRET="L0ngt4llS4lly"
