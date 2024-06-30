@@ -1,5 +1,4 @@
 pub mod case_database;
-pub mod core_database;
 pub mod case_handler;
 pub mod collaboration_handler;
 pub mod user_service;

@@ -9,7 +9,6 @@ use std::env;
 use rocket::Config;
 
 use api::case_handler;
-use api::user_handler;
 use api::collaboration_handler::{self, new_collaboration_handler};
 use api::middleware_handler::Logger;
 use api::cors::{CORS, all_options};
@@ -34,7 +33,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     rocket::build()
     .configure(figment)
     .manage(case_handler::CaseHandler::new().await)
-    .manage(user_handler::UserHandler::new().await)
     .manage(new_collaboration_handler().await)
     .manage(UserService::new())
     .attach(CORS)
@@ -49,10 +47,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         case_handler::get_case,
         case_handler::get_cases,
-
-        user_handler::get_services,
-        user_handler::get_user_by_id,
-        user_handler::create_user,
 
         all_options
     ])
