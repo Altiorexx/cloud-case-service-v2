@@ -1,5 +1,4 @@
 use std::sync::Arc;
-
 use rocket::{fairing::{Fairing, Info, Kind}, Data, Request, State};
 use rocket::http::Status;
 use rocket::request::FromRequest;
@@ -25,6 +24,16 @@ impl<'r> FromRequest<'r> for AuthorizeClientGuard {
             }
         };
 
+        // check if request is for ws connection, this should be handled differently.
+        // this can't use auth through headers, so instead uses query value.
+        // allow access directly to handler, takes care of it..
+        if let Some(route) = request.route() {
+            if route.uri.path().to_string() == "/api/collaboration/case/<case_id>/connect/<user_id>" {
+                return Outcome::Success(AuthorizeClientGuard);
+            }
+        }
+
+        // if it is a common request, look for the token in the header
         match request.headers().get_one("Authorization") {
             Some(header) => {
                 if header.starts_with("Bearer ") {

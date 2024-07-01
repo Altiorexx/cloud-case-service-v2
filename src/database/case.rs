@@ -1,37 +1,38 @@
 use mongodb::{bson::{self, doc}, error::Error, options::{ClientOptions, FindOptions, UpdateOptions}, Client, Collection};
 use rocket::futures::TryStreamExt;
-use std::env;
+use std::{collections::HashMap, env};
 use uuid::Uuid;
 
-
-use crate::types::case_database::{CIS18Case, Case};
+use crate::types::case_database::{CIS18Case, Case, CaseMetadata, GroupCases};
 use crate::types::collaboration_handler::{Message, Change, TextOrIntValue};
 
 
 pub struct CaseDatabase {
     cases: Collection<Case>,
+    cases_metadata: Collection<CaseMetadata>,
     cis18_template: Collection<CIS18Case>
 }
 
-pub async fn new_case_database() -> CaseDatabase {
-
-    let client_uri = env::var("MONGODB_CONNECTION_STRING").unwrap();
-    let database_name = "core";
-
-    let client_options = ClientOptions::parse(client_uri).await.unwrap();
-    let client = Client::with_options(client_options).unwrap();
-
-    let database = client.database(database_name);
-    let cases = database.collection::<Case>("cases");
-    let cis18_template = database.collection::<CIS18Case>("templates");
-
-    CaseDatabase {
-        cases,
-        cis18_template
-    }
-}
-
 impl CaseDatabase {
+
+    pub async fn new() -> Self {
+        let client_uri = env::var("MONGODB_CONNECTION_STRING").unwrap();
+        let database_name = "core";
+
+        let client_options = ClientOptions::parse(client_uri).await.unwrap();
+        let client = Client::with_options(client_options).unwrap();
+        let database = client.database(database_name);
+
+        let cases = database.collection::<Case>("cases");
+        let cases_metadata = database.collection::<CaseMetadata>("cases");
+        let cis18_template = database.collection::<CIS18Case>("templates");
+
+        Self {
+            cases,
+            cases_metadata,
+            cis18_template
+        }
+    }
 
     pub async fn create_cis18_case(&self, group_id: &String, name: &String, implementation_group: i32) -> Result<Option<String>, Box<dyn std::error::Error>> {
         let filter = doc! { "framework": "cis18" };
@@ -84,6 +85,26 @@ impl CaseDatabase {
             cases.push(case)
         }
         Ok(cases)
+    }
+
+
+    pub async fn read_cases_sorted_by_group(&self, group_ids: Vec<&str>) -> Result<Vec<GroupCases>, Error> {
+        let filter = doc! { "group_id": { "$in": &group_ids }};
+        let mut cursor = self.cases_metadata.find(filter, None).await?;
+
+        let mut map: HashMap<String, Vec<CaseMetadata>> = HashMap::new();
+        while let Some(case) = cursor.try_next().await? {
+            let id = case.group_id.clone();
+            map.entry(id).or_insert(Vec::new()).push(case)
+        }
+
+        let mut group_cases: Vec<GroupCases> = Vec::new();
+        for group_id in group_ids {
+            if let Some(cases) = map.remove(group_id) {
+                group_cases.push(GroupCases { group_id: group_id.to_string(), cases })
+            }
+        }
+        Ok(group_cases)
     }
 
     pub async fn read_case_framework(&self, case_id: &String) -> Result<String, Box<dyn std::error::Error>> {
