@@ -94,7 +94,7 @@ pub async fn get_cases(_guard: AuthorizeClientGuard, case_database: &State<CaseD
     }
 }
 
-#[get("/api/case/<case_id>/export")]
+#[get("/api/case/<case_id>/export/docx")]
 pub async fn export_case_docx(_guard: AuthorizeClientGuard, case_database: &State<CaseDatabase>, case_id: &str, client: &State<reqwest::Client>) -> Result<(ContentType, Vec<u8>), Custom<Json<ErrorResponse>>> {
 
     let case = match case_database.read_case_by_id(case_id.to_string()).await {
