@@ -31,7 +31,7 @@ impl UserService {
             cache: Arc::new(RwLock::new(HashMap::new())),
             ttl: Duration::from_secs(300)
         });
-        Self::start_cleanup_task(s.clone(), Duration::from_secs(300));
+        Self::start_cleanup_task(s.clone(), Duration::from_secs(600));
         s
     }
 

@@ -5,7 +5,6 @@ pub struct CreateCIS18CaseBody {
     pub user_id: String,
     pub group_id: String,
     pub name: String,
-    pub framework: String,
     pub implementation_group: i32
 }
 
@@ -18,3 +17,4 @@ pub struct CreateCaseResponse {
 pub struct RenameCaseBody {
     pub name: String
 }
+

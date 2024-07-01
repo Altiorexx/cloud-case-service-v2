@@ -3,7 +3,6 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Message {
-    pub user_id: String,
     pub event: Event,
     pub data: Change
 }
@@ -13,6 +12,7 @@ pub struct Message {
 pub enum Event {
     TextChange,
     DropdownChange,
+    DocumentationChange
 }
 
 #[derive(Debug, Deserialize)]

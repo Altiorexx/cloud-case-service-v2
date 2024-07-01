@@ -54,3 +54,18 @@ pub struct NIS2Case {
     pub group_id: String,
     pub framework: String
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GroupCases {
+    pub group_id: String,
+    pub cases: Vec<CaseMetadata>
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct CaseMetadata {
+    pub case_id: String,
+    pub group_id: String,
+    pub name: String,
+    pub framework: String,
+    pub implementation_group: Option<i32>
+}

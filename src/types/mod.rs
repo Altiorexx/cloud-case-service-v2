@@ -9,3 +9,9 @@ pub mod token_service;
 pub struct ErrorResponse {
     pub error: String
 }
+
+impl ErrorResponse {
+    pub fn new(msg: &str) -> Self {
+        Self { error: msg.into() }
+    }
+}

@@ -6,25 +6,18 @@ use rocket::response::status::Custom;
 use crate::types::case_database::Case;
 use crate::types::case_handler::{CreateCIS18CaseBody, CreateCaseResponse, RenameCaseBody};
 use crate::types::ErrorResponse;
-use crate::database::case::{CaseDatabase, new_case_database};
+use crate::types::case_database::GroupCases;
+use crate::database::case::CaseDatabase;
 use crate::api::middleware_handler::AuthorizeClientGuard;
 
 
-pub struct CaseHandler {
-    case: CaseDatabase
-}
-
-impl CaseHandler {
-    pub async fn new() -> CaseHandler {
-        CaseHandler {
-            case: new_case_database().await
-        }
-    }
-}
-    
 #[post("/api/case/cis18/create", data = "<data>")]
-pub async fn create_cis18_case(_guard: AuthorizeClientGuard, handler: &State<CaseHandler>, data: Json<CreateCIS18CaseBody>) -> Result<Custom<Json<CreateCaseResponse>>, Custom<Json<ErrorResponse>>> {
-    match handler.case.create_cis18_case(&data.group_id, &data.name, data.implementation_group).await {
+pub async fn create_cis18_case(
+    _guard: AuthorizeClientGuard,
+    case_database: &State<CaseDatabase>,
+    data: Json<CreateCIS18CaseBody>
+) -> Result<Custom<Json<CreateCaseResponse>>, Custom<Json<ErrorResponse>>> {
+    match case_database.create_cis18_case(&data.group_id, &data.name, data.implementation_group).await {
         Ok(result) => match result {
             Some(case_id) => Ok(Custom(Status::Ok, Json(CreateCaseResponse{case_id}))),
             None => Err(Custom(Status::NotFound, Json(ErrorResponse{error: format!("no matching template found")})))
@@ -37,8 +30,13 @@ pub async fn create_cis18_case(_guard: AuthorizeClientGuard, handler: &State<Cas
 }
 
 #[post("/api/case/<case_id>/rename", data = "<data>")]
-pub async fn rename_case(__guard: AuthorizeClientGuard, handler: &State<CaseHandler>, case_id: String, data: Json<RenameCaseBody>) -> Result<Custom<String>, Custom<Json<ErrorResponse>>> {
-    match handler.case.rename_case(&case_id, &data.name).await {
+pub async fn rename_case(
+    _guard: AuthorizeClientGuard,
+    case_database: &State<CaseDatabase>, 
+    case_id: String, 
+    data: Json<RenameCaseBody>
+) -> Result<Custom<String>, Custom<Json<ErrorResponse>>> {
+    match case_database.rename_case(&case_id, &data.name).await {
         Ok(result) => {
             match result {
                 Some(_) => Ok(Custom(Status::Ok, "successfully renamed the case".into())),
@@ -53,8 +51,8 @@ pub async fn rename_case(__guard: AuthorizeClientGuard, handler: &State<CaseHand
 }
 
 #[delete("/api/case/<case_id>/delete")]
-pub async fn delete_case(_guard: AuthorizeClientGuard, handler: &State<CaseHandler>, case_id: String) -> Result<Custom<String>, Custom<Json<ErrorResponse>>> {
-    match handler.case.delete_case(&case_id).await {
+pub async fn delete_case(_guard: AuthorizeClientGuard, case_database: &State<CaseDatabase>, case_id: String) -> Result<Custom<String>, Custom<Json<ErrorResponse>>> {
+    match case_database.delete_case(&case_id).await {
         Ok(result) => {
             match result {
                 Some(_) => Ok(Custom(Status::Ok, "successfully deleted case".into())),
@@ -69,8 +67,8 @@ pub async fn delete_case(_guard: AuthorizeClientGuard, handler: &State<CaseHandl
 }
 
 #[get("/api/case/<case_id>")]
-pub async fn get_case(_guard: AuthorizeClientGuard, handler: &State<CaseHandler>, case_id: &str) -> Result<Custom<Json<Case>>, Custom<Json<ErrorResponse>> > {
-    match handler.case.read_case_by_id(case_id.into()).await {
+pub async fn get_case(_guard: AuthorizeClientGuard, case_database: &State<CaseDatabase>, case_id: &str) -> Result<Custom<Json<Case>>, Custom<Json<ErrorResponse>> > {
+    match case_database.read_case_by_id(case_id.into()).await {
         Ok(r) => {
             match r {
                 Some(case) => Ok(Custom(Status::Ok, Json(case))),
@@ -84,14 +82,13 @@ pub async fn get_case(_guard: AuthorizeClientGuard, handler: &State<CaseHandler>
     }
 }
 
-#[get("/api/case/list/<group_id>")]
-pub async fn get_cases(_guard: AuthorizeClientGuard, handler: &State<CaseHandler>, group_id: &str) -> Result<Custom<Json<Vec<Case>>>, Custom<Json<ErrorResponse>>> {
-    match handler.case.read_cases_by_group_id(group_id.into()).await {
+#[post("/api/case/list", data = "<group_ids>")]
+pub async fn get_cases(_guard: AuthorizeClientGuard, case_database: &State<CaseDatabase>, group_ids: Json<Vec<&str>>) -> Result<Custom<Json<Vec<GroupCases>>>, Custom<Json<ErrorResponse>>> {
+    match case_database.read_cases_sorted_by_group(group_ids.to_vec()).await {
         Ok(cases) => Ok(Custom(Status::Ok, Json(cases))),
         Err(e) => {
             eprintln!("error reading cases by group id: {}", e);
             Err(Custom(Status::InternalServerError, Json(ErrorResponse{error: "error reading cases by group id".into()})))
         }
     }
-
 }

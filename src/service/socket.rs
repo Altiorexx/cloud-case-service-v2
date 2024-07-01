@@ -9,22 +9,14 @@ pub struct SocketService {
     clients: Arc<RwLock<HashMap<String, SplitSink<DuplexStream, Message>>>> // each client's connection
 }
 
-pub async fn new_socket_service() -> SocketService {
-    SocketService {
-        cases: Arc::new(RwLock::new(HashMap::new())),
-        clients: Arc::new(RwLock::new(HashMap::new()))
-    }
-}
-
-// connect
-// check if list already exists for case
-// add user to case list
-// store user client info (id, socket)
-// receive messages and update case
-// *broadcast to all on case list, except producer
-
-
 impl SocketService {
+
+    pub fn new() -> Self {
+        Self {
+            cases: Arc::new(RwLock::new(HashMap::new())),
+            clients: Arc::new(RwLock::new(HashMap::new()))
+        }
+    }
 
     pub async fn active_client(&self, case_id: &String) -> bool {
         let cases = self.cases.read().await;
