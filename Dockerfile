@@ -16,7 +16,7 @@ RUN cargo build
 EXPOSE $PORT
 
 # Define the command to run your application
-CMD ./target/debug/rust-api
+CMD ./target/debug/case-service
 
 
 
