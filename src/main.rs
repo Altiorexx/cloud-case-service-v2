@@ -37,6 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .manage(UserService::new())
     .manage(SocketService::new())
     .manage(CaseDatabase::new().await)
+    .manage(reqwest::Client::new())
     .attach(CORS)
     .attach(Logger)
     .mount("/", routes![
@@ -49,6 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         case_handler::get_case,
         case_handler::get_cases,
+        case_handler::export_case_docx,
 
         all_options
     ])
